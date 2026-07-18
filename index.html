@@ -490,7 +490,7 @@ let spawnPoint=new THREE.Vector3(0,64,0);
 let gameruleDaylight=true,gameruleWeather=true,gameruleKeepInv=false;
 let playerXP=0,playerLevel=0,playerHealth=20,playerMaxHealth=20,playerHunger=20,playerSaturation=0;
 let playerVelocity=new THREE.Vector3();
-let playerOnGround=false,playerFlying=false,playerFlyTimer=0;
+let playerOnGround=false,playerFlying=false,playerFlyTimer=0,lastSpaceTime=0;
 let isThirdPerson=false;
 let chatMessages=[],chatOpen=false,debugOpen=false;
 let lookAtEntity=null,tradingWith=null;
@@ -1089,15 +1089,13 @@ function updatePlayer(dt){
   if(keys['KeyA'])moveDir.sub(right);
   if(keys['KeyD'])moveDir.add(right);
   if(moveDir.length()>0)moveDir.normalize();
-
-  if(playerFlying&&gameMode==='creative'){
+if(playerFlying&&gameMode==='creative'){
     playerVelocity.x=moveDir.x*speed;
     playerVelocity.z=moveDir.z*speed;
     playerVelocity.y=0;
-    if(keys['KeyW']&&!keys['ShiftLeft'])playerVelocity.y+=speed;
-    if(keys['KeyS']&&!keys['ShiftLeft'])playerVelocity.y-=speed;
     if(keys['Space'])playerVelocity.y=speed;
     if(keys['ShiftLeft'])playerVelocity.y=-speed;
+  }
   }else{
     playerVelocity.x=moveDir.x*speed;
     playerVelocity.z=moveDir.z*speed;
@@ -1754,7 +1752,7 @@ function executeCommand(cmd){
   const parts=cmd.slice(1).split(' ');
   const cmdName=parts[0].toLowerCase();
   if(cmdName==='gamemode'){
-    if(parts[1]==='creative'){gameMode='creative';playerFlying=true;addChatMessage('[模式] 创造模式');updateModeUI();}
+    if(parts[1]==='creative'){gameMode='creative';addChatMessage('[模式] 创造模式（双击空格飞行）');updateModeUI();}
     else if(parts[1]==='survival'){gameMode='survival';playerFlying=false;addChatMessage('[模式] 生存模式');updateModeUI();}
   }else if(cmdName==='time'){
     if(parts[1]==='set'&&parts[2]==='day'){timeOfDay=1000;addChatMessage('[系统] 时间设为白天');}
@@ -1878,10 +1876,14 @@ function onKeyDown(e){
   if(e.code==='F5'&&gameStarted){isThirdPerson=!isThirdPerson;addChatMessage(isThirdPerson?'[视角] 第三人称':'[视角] 第一人称');}
   if(e.code==='F6'&&gameStarted){toggleGameMode();}
   if(e.code==='F3'&&gameStarted){debugOpen=!debugOpen;document.getElementById('debug-screen').style.display=debugOpen?'block':'none';}
-  // Creative flight
+  // Creative flight - double-tap Space to toggle
   if(e.code==='Space'&&gameMode==='creative'&&!isInventoryOpen){
-    playerFlyTimer+=0.1;
-    if(playerFlyTimer>0.3&&!playerFlying){playerFlying=true;addChatMessage('[飞行] 已启用飞行');}
+    const now=performance.now();
+    if(now-lastSpaceTime<300&&!chatOpen){
+      playerFlying=!playerFlying;
+      addChatMessage(playerFlying?'[飞行] 已启用飞行':'[飞行] 已停用飞行');
+    }
+    lastSpaceTime=now;
   }
   // Number keys for hotbar
   if(e.code>='Digit1'&&e.code<='Digit9'&&!chatOpen&&!isInventoryOpen){
@@ -2231,7 +2233,7 @@ function gameLoop(){
 }
 
 function toggleGameMode(){
-  if(gameMode==='survival'){gameMode='creative';playerFlying=true;addChatMessage('[F6] 创造模式');}
+  if(gameMode==='survival'){gameMode='creative';addChatMessage('[F6] 创造模式（双击空格飞行）');}
   else{gameMode='survival';playerFlying=false;addChatMessage('[F6] 生存模式');}
   updateModeUI();
 }
