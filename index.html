@@ -38,7 +38,10 @@ canvas{display:block;}
 #inventory-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;}
 #inventory-screen.active{display:flex;}
 .inv-container{background:rgba(60,40,20,0.95);border:4px solid #3a2210;padding:15px;border-radius:4px;}
-.inv-title{color:#fff;text-align:center;margin-bottom:10px;font-size:18px;}
+.inv-title{color:#fff;text-align:center;margin-bottom:10px;font-size:18px;display:flex;justify-content:center;align-items:center;gap:16px;}
+.inv-close{width:34px;height:34px;background:rgba(180,40,40,0.8);border:2px solid #a33;color:#fff;font-size:16px;border-radius:6px;cursor:pointer;line-height:1;text-align:center;display:none;margin-left:auto;}
+@media(pointer:coarse){.inv-close{display:block;}}
+@media(max-width:768px){.inv-close{display:block;}}
 .inv-grid{display:grid;grid-template-columns:repeat(9,42px);gap:2px;margin-bottom:8px;}
 .inv-slot{width:42px;height:42px;border:2px solid #666;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;}
 .inv-slot:hover{border-color:#fff;background:rgba(255,255,255,0.2);}
@@ -122,7 +125,7 @@ canvas{display:block;}
 <div id="debug-screen"></div>
 <div id="inventory-screen">
   <div class="inv-container">
-    <div class="inv-title">物品栏</div>
+    <div class="inv-title">物品栏 <button class="inv-close" id="inv-close-btn">✕</button></div>
     <div class="inv-grid" id="inv-grid"></div>
     <div class="inv-grid" id="hotbar-grid" style="margin-top:4px;"></div>
     <div class="equip-row">
@@ -1891,6 +1894,15 @@ function setupMobileControls(){
     chatOpen=true;
     document.getElementById('chat-input').style.display='block';
     document.getElementById('chat-text').focus();
+  });
+
+  // Inventory close button (mobile)
+  document.getElementById('inv-close-btn').addEventListener('click',(e)=>{
+    e.stopPropagation();
+    isInventoryOpen=false;
+    syncHotbarFromInv();
+    document.getElementById('inventory-screen').classList.remove('active');
+    updateUI();
   });
 }
 
