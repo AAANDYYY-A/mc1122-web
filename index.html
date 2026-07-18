@@ -1089,13 +1089,12 @@ function updatePlayer(dt){
   if(keys['KeyA'])moveDir.sub(right);
   if(keys['KeyD'])moveDir.add(right);
   if(moveDir.length()>0)moveDir.normalize();
-if(playerFlying&&gameMode==='creative'){
+  if(playerFlying&&gameMode==='creative'){
     playerVelocity.x=moveDir.x*speed;
     playerVelocity.z=moveDir.z*speed;
     playerVelocity.y=0;
     if(keys['Space'])playerVelocity.y=speed;
     if(keys['ShiftLeft'])playerVelocity.y=-speed;
-  }
   }else{
     playerVelocity.x=moveDir.x*speed;
     playerVelocity.z=moveDir.z*speed;
