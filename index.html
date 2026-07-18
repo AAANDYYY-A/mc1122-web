@@ -1925,7 +1925,7 @@ function onResize(){
 }
 
 // ============ MOBILE TOUCH CONTROLS ============
-let touchState={joystickActive:false,joystickId:null,joystickDX:0,joystickDY:0,cameraTouchId:null,cameraLastX:0,cameraLastY:0,isBreaking:false,isPlacing:false};
+let touchState={joystickActive:false,joystickId:null,joystickDX:0,joystickDY:0,cameraTouchId:null,cameraLastX:0,cameraLastY:0,isBreaking:false,isPlacing:false,lastJumpTime:0};
 
 function setupMobileControls(){
   const jb=document.getElementById('joystick-base');
@@ -2005,7 +2005,18 @@ function setupMobileControls(){
   const btnEnd=(id,cb)=>document.getElementById(id).addEventListener('touchend',(e)=>{e.preventDefault();cb();});
   const btnCancel=(id,cb)=>document.getElementById(id).addEventListener('touchcancel',(e)=>{cb();});
 
-  btn('mbtn-jump',()=>{keys['Space']=true;setTimeout(()=>{keys['Space']=false;},200);});
+  btn('mbtn-jump',()=>{
+    if(gameMode==='creative'){
+      const now=performance.now();
+      if(now-touchState.lastJumpTime<300){
+        playerFlying=!playerFlying;
+        addChatMessage(playerFlying?'[飞行] 已启用飞行':'[飞行] 已停用飞行');
+      }
+      touchState.lastJumpTime=now;
+    }
+    keys['Space']=true;
+    setTimeout(()=>{keys['Space']=false;},200);
+  });
   btn('mbtn-sneak',()=>{keys['ShiftLeft']=true;});
   btnEnd('mbtn-sneak',()=>{keys['ShiftLeft']=false;});
   btnCancel('mbtn-sneak',()=>{keys['ShiftLeft']=false;});
