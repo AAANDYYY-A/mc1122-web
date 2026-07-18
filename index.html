@@ -123,11 +123,6 @@ canvas{display:block;}
 <div id="inventory-screen">
   <div class="inv-container">
     <div class="inv-title">物品栏</div>
-    <div class="craft-row">
-      <div class="craft-grid" id="craft-grid"></div>
-      <div class="craft-arrow">→</div>
-      <div class="craft-output" id="craft-output"></div>
-    </div>
     <div class="inv-grid" id="inv-grid"></div>
     <div class="inv-grid" id="hotbar-grid" style="margin-top:4px;"></div>
     <div class="equip-row">
@@ -328,114 +323,6 @@ function blockItemId(blockId){return 10000+blockId;}
 function isBlockItem(itemId){return itemId>=10000&&itemId<20000;}
 function itemToBlock(itemId){return isBlockItem(itemId)?itemId-10000:null;}
 
-// ============ CRAFTING RECIPES ============
-// Recipe: {pattern:['xxx','xxx','xxx'], key:{x:id}, result:{id,count}}
-const CRAFTING_RECIPES=[
-  // Planks from log
-  {pattern:['L'],key:{L:blockItemId(BLOCK.LOG_OAK)},result:{id:blockItemId(BLOCK.PLANKS),count:4}},
-  {pattern:['L'],key:{L:blockItemId(BLOCK.LOG_BIRCH)},result:{id:blockItemId(BLOCK.PLANKS),count:4}},
-  {pattern:['L'],key:{L:blockItemId(BLOCK.LOG_SPRUCE)},result:{id:blockItemId(BLOCK.PLANKS),count:4}},
-  // Sticks
-  {pattern:['P','P'],key:{P:blockItemId(BLOCK.PLANKS)},result:{id:ITEM.STICK,count:4}},
-  // Crafting Table
-  {pattern:['PP','PP'],key:{P:blockItemId(BLOCK.PLANKS)},result:{id:blockItemId(BLOCK.CRAFTING_TABLE),count:1}},
-  // Torches
-  {pattern:['C','S'],key:{C:ITEM.COAL,S:ITEM.STICK},result:{id:blockItemId(BLOCK.TORCH),count:4}},
-  {pattern:['C','S'],key:{C:ITEM.CHARCOAL,S:ITEM.STICK},result:{id:blockItemId(BLOCK.TORCH),count:4}},
-  // Furnace
-  {pattern:['CCC','C C','CCC'],key:{C:blockItemId(BLOCK.COBBLESTONE)},result:{id:blockItemId(BLOCK.FURNACE),count:1}},
-  // Chest
-  {pattern:['PPP','P P','PPP'],key:{P:blockItemId(BLOCK.PLANKS)},result:{id:blockItemId(BLOCK.CHEST),count:1}},
-  // Wood Pickaxe
-  {pattern:['PPP',' S ',' S '],key:{P:blockItemId(BLOCK.PLANKS),S:ITEM.STICK},result:{id:ITEM.WOOD_PICKAXE,count:1}},
-  // Stone Pickaxe
-  {pattern:['CCC',' S ',' S '],key:{C:blockItemId(BLOCK.COBBLESTONE),S:ITEM.STICK},result:{id:ITEM.STONE_PICKAXE,count:1}},
-  // Iron Pickaxe
-  {pattern:['III',' S ',' S '],key:{I:ITEM.IRON_INGOT,S:ITEM.STICK},result:{id:ITEM.IRON_PICKAXE,count:1}},
-  // Diamond Pickaxe
-  {pattern:['DDD',' S ',' S '],key:{D:ITEM.DIAMOND,S:ITEM.STICK},result:{id:ITEM.DIAMOND_PICKAXE,count:1}},
-  // Wood Axe
-  {pattern:['PP','PS',' S'],key:{P:blockItemId(BLOCK.PLANKS),S:ITEM.STICK},result:{id:ITEM.WOOD_AXE,count:1}},
-  // Stone Axe
-  {pattern:['CC','CS',' S'],key:{C:blockItemId(BLOCK.COBBLESTONE),S:ITEM.STICK},result:{id:ITEM.STONE_AXE,count:1}},
-  // Wood Sword
-  {pattern:['P','P','S'],key:{P:blockItemId(BLOCK.PLANKS),S:ITEM.STICK},result:{id:ITEM.WOOD_SWORD,count:1}},
-  // Stone Sword
-  {pattern:['C','C','S'],key:{C:blockItemId(BLOCK.COBBLESTONE),S:ITEM.STICK},result:{id:ITEM.STONE_SWORD,count:1}},
-  // Iron Sword
-  {pattern:['I','I','S'],key:{I:ITEM.IRON_INGOT,S:ITEM.STICK},result:{id:ITEM.IRON_SWORD,count:1}},
-  // Diamond Sword
-  {pattern:['D','D','S'],key:{D:ITEM.DIAMOND,S:ITEM.STICK},result:{id:ITEM.DIAMOND_SWORD,count:1}},
-  // Wood Shovel
-  {pattern:['P','S','S'],key:{P:blockItemId(BLOCK.PLANKS),S:ITEM.STICK},result:{id:ITEM.WOOD_SHOVEL,count:1}},
-  // Stone Shovel
-  {pattern:['C','S','S'],key:{C:blockItemId(BLOCK.COBBLESTONE),S:ITEM.STICK},result:{id:ITEM.STONE_SHOVEL,count:1}},
-  // Wood Hoe
-  {pattern:['PP',' S',' S'],key:{P:blockItemId(BLOCK.PLANKS),S:ITEM.STICK},result:{id:ITEM.WOOD_HOE,count:1}},
-  // Iron Helmet
-  {pattern:['III','I I'],key:{I:ITEM.IRON_INGOT},result:{id:ITEM.IRON_HELMET,count:1}},
-  // Iron Chestplate
-  {pattern:['I I','III','III'],key:{I:ITEM.IRON_INGOT},result:{id:ITEM.IRON_CHEST,count:1}},
-  // Iron Leggings
-  {pattern:['III','I I','I I'],key:{I:ITEM.IRON_INGOT},result:{id:ITEM.IRON_LEGS,count:1}},
-  // Iron Boots
-  {pattern:['I I','I I'],key:{I:ITEM.IRON_INGOT},result:{id:ITEM.IRON_BOOTS,count:1}},
-  // Diamond Helmet
-  {pattern:['DDD','D D'],key:{D:ITEM.DIAMOND},result:{id:ITEM.DIAMOND_HELMET,count:1}},
-  // Diamond Chestplate
-  {pattern:['D D','DDD','DDD'],key:{D:ITEM.DIAMOND},result:{id:ITEM.DIAMOND_CHEST,count:1}},
-  // Bow
-  {pattern:[' Sf','S f',' Sf'],key:{S:ITEM.STICK,f:ITEM.STRING},result:{id:ITEM.BOW,count:1}},
-  // Arrow
-  {pattern:['F','S','f'],key:{F:ITEM.FEATHER,S:ITEM.STICK,f:ITEM.FLINT_AND_STEEL},result:{id:ITEM.ARROW,count:4}},
-  // Bread
-  {pattern:['WWW'],key:{W:ITEM.WHEAT||-1},result:{id:ITEM.BREAD,count:1}},
-  // Door
-  {pattern:['PP','PP','PP'],key:{P:blockItemId(BLOCK.PLANKS)},result:{id:blockItemId(BLOCK.DOOR_WOOD),count:3}},
-  // Glass
-  {pattern:['SSS','S S','SSS'],key:{S:blockItemId(BLOCK.SAND)},result:{id:blockItemId(BLOCK.GLASS),count:1}},
-  // Stone Bricks
-  {pattern:['SS','SS'],key:{S:blockItemId(BLOCK.STONE)},result:{id:blockItemId(BLOCK.STONE_BRICK),count:4}},
-  // Dispenser
-  {pattern:['CCC','CBC','CCC'],key:{C:blockItemId(BLOCK.COBBLESTONE),B:ITEM.BOW},result:{id:blockItemId(BLOCK.DISPENSER),count:1}},
-  // Piston
-  {pattern:['PPP','CIC','CRC'],key:{P:blockItemId(BLOCK.PLANKS),C:blockItemId(BLOCK.COBBLESTONE),I:ITEM.IRON_INGOT,R:ITEM.REDSTONE},result:{id:blockItemId(BLOCK.PISTON),count:1}},
-  // Redstone Lamp
-  {pattern:[' R ','RGR',' R '],key:{R:ITEM.REDSTONE,G:blockItemId(BLOCK.GLOWSTONE)},result:{id:blockItemId(BLOCK.REDSTONE_LAMP),count:1}},
-  // Note Block
-  {pattern:['PPP','PRP','PPP'],key:{P:blockItemId(BLOCK.PLANKS),R:ITEM.REDSTONE},result:{id:blockItemId(BLOCK.NOTE_BLOCK),count:1}},
-  // Anvil
-  {pattern:['III',' I ','III'],key:{I:ITEM.IRON_INGOT},result:{id:blockItemId(BLOCK.ANVIL),count:1}},
-  // Iron Block
-  {pattern:['III','III','III'],key:{I:ITEM.IRON_INGOT},result:{id:blockItemId(BLOCK.IRON_BLOCK),count:1}},
-  // Gold Block
-  {pattern:['GGG','GGG','GGG'],key:{G:ITEM.GOLD_INGOT},result:{id:blockItemId(BLOCK.GOLD_BLOCK),count:1}},
-  // Diamond Block
-  {pattern:['DDD','DDD','DDD'],key:{D:ITEM.DIAMOND},result:{id:blockItemId(BLOCK.DIAMOND_BLOCK),count:1}},
-  // Fence Gate
-  {pattern:['SPS','SPS'],key:{S:ITEM.STICK,P:blockItemId(BLOCK.PLANKS)},result:{id:blockItemId(BLOCK.FENCE_GATE),count:1}},
-  // Trapdoor
-  {pattern:['PPP','PPP'],key:{P:blockItemId(BLOCK.PLANKS)},result:{id:blockItemId(BLOCK.TRAPDOOR),count:2}},
-  // Snow block
-  {pattern:['SS','SS'],key:{S:blockItemId(BLOCK.SNOW)},result:{id:blockItemId(BLOCK.SNOW),count:1,realBlock:BLOCK.SNOW}},
-  // Glowstone
-  {pattern:['GG','GG'],key:{G:ITEM.GLOWSTONE_DUST||-1},result:{id:blockItemId(BLOCK.GLOWSTONE),count:1}},
-  // Book
-  {pattern:['PPP'],key:{P:ITEM.PAPER},result:{id:ITEM.BOOK,count:1}},
-  // Bookshelf
-  {pattern:['PPP','BBB','PPP'],key:{P:blockItemId(BLOCK.PLANKS),B:ITEM.BOOK},result:{id:blockItemId(BLOCK.BOOKSHELF),count:1}},
-  // Ender Chest
-  {pattern:['OOO','OEO','OOO'],key:{O:blockItemId(BLOCK.OBSIDIAN),E:ITEM.ENDER_EYE},result:{id:blockItemId(BLOCK.ENDER_CHEST),count:1}},
-  // Enchantment Table
-  {pattern:[' B ','D D','DDD'],key:{B:ITEM.BOOK,D:ITEM.DIAMOND},result:{id:blockItemId(BLOCK.ENCHANT_TABLE),count:1}},
-  // Flint and Steel
-  {pattern:['I','F'],key:{I:ITEM.IRON_INGOT,F:ITEM.FLINT||-1},result:{id:ITEM.FLINT_AND_STEEL,count:1}},
-  // Bucket
-  {pattern:['I I',' I '],key:{I:ITEM.IRON_INGOT},result:{id:ITEM.BUCKET,count:1}},
-  // Shield
-  {pattern:['PIP','PPP',' P '],key:{P:blockItemId(BLOCK.PLANKS),I:ITEM.IRON_INGOT},result:{id:ITEM.SHIELD,count:1}},
-];
-
 // Furnace recipes: {input:itemId, output:{id,count}, ticks}
 const FURNACE_RECIPES=[
   {input:blockItemId(BLOCK.IRON_ORE),output:{id:ITEM.IRON_INGOT,count:1},ticks:160},
@@ -477,7 +364,6 @@ let noise1,noise2,noise3;
 let player,camera,scene,renderer,clock;
 let inventory=[],hotbar=[],selectedSlot=0;
 let armor=[null,null,null,null],offhand=null;
-let craftSlots=Array(9).fill(null);
 let furnaceInput=null,furnaceFuel=null,furnaceOutput=null,furnaceBurnTime=0,furnaceProgress=0,furnaceMaxProgress=160;
 let isInventoryOpen=false,isFurnaceOpen=false,isPaused=false,gameStarted=false;
 let blockBreakingProgress=0,blockBreakingTarget=null,blockBreakingPos=null;
@@ -1255,44 +1141,6 @@ function getSelectedItem(){
   return hotbar[selectedSlot];
 }
 
-// ============ CRAFTING ============
-function findCraftingRecipe(slots){
-  for(const recipe of CRAFTING_RECIPES){
-    const pattern=recipe.pattern;
-    const ph=pattern.length,pw=pattern[0].length;
-    // Find offset
-    for(let ox=0;ox<=3-ph;ox++){
-      for(let oz=0;oz<=3-pw;oz++){
-        let match=true;
-        const keyCounts={};
-        for(const k in recipe.key)keyCounts[k]=0;
-        for(let y=0;y<ph;y++){
-          for(let x=0;x<pw;x++){
-            const c=pattern[y][x];
-            const slotIdx=(y+ox)*3+(x+oz);
-            if(slotIdx>=9){match=false;break;}
-            if(c===' '){
-              if(slots[slotIdx]!==null){match=false;break;}
-            }else{
-              if(!slots[slotIdx]||slots[slotIdx].id!==recipe.key[c]){match=false;break;}
-              keyCounts[c]=(keyCounts[c]||0)+1;
-            }
-          }
-          if(!match)break;
-        }
-        if(match){
-          // Check that no extra items exist in slots that aren't part of pattern
-          let allUsed=new Set();
-          for(let y=0;y<ph;y++)for(let x=0;x<pw;x++)if(pattern[y][x]!==' ')allUsed.add((y+ox)*3+(x+oz));
-          for(let i=0;i<9;i++){if(slots[i]!==null&&!allUsed.has(i)){match=false;break;}}
-          if(match)return recipe;
-        }
-      }
-    }
-  }
-  return null;
-}
-
 // ============ MOBS ============
 class Entity{
   constructor(type,x,y,z){
@@ -1522,32 +1370,6 @@ function updateInvScreen(){
     const slot=createInvSlot(hotbar[i],'hotbar',i);
     hotbarGrid.appendChild(slot);
   }
-  // Craft grid
-  const craftGrid=document.getElementById('craft-grid');
-  craftGrid.innerHTML='';
-  for(let i=0;i<9;i++){
-    const slot=createInvSlot(craftSlots[i],'craft',i);
-    craftGrid.appendChild(slot);
-  }
-  // Craft output
-  const output=document.getElementById('craft-output');
-  const recipe=findCraftingRecipe(craftSlots);
-  output.innerHTML='';
-  if(recipe){
-    const icon=document.createElement('span');
-    icon.className='icon';
-    icon.textContent=getItemIcon(recipe.result.id);
-    output.appendChild(icon);
-    if(recipe.result.count>1){
-      const cnt=document.createElement('span');cnt.className='count';cnt.textContent=recipe.result.count;output.appendChild(cnt);
-    }
-    output.onclick=()=>{
-      // Consume items
-      for(let i=0;i<9;i++){if(craftSlots[i]){craftSlots[i].count--;if(craftSlots[i].count<=0)craftSlots[i]=null;}}
-      addToInventory({id:recipe.result.id,count:recipe.result.count});
-      updateInvScreen();
-    };
-  }
   // Armor slots
   updateEquipSlot('helm-slot',armor[0]);
   updateEquipSlot('chest-slot',armor[1]);
@@ -1566,7 +1388,7 @@ function createInvSlot(item,from,index){
   slot.onclick=(e)=>{
     if(draggingItem!==null){
       // Place dragged item
-      const targetArr=from==='inv'?inventory:from==='hotbar'?hotbar:from==='craft'?craftSlots:null;
+      const targetArr=from==='inv'?inventory:from==='hotbar'?hotbar:null;
       if(targetArr){
         const existing=targetArr[index+ (from==='inv'?9:0)];
         if(existing&&existing.id===draggingItem.id){
@@ -1581,7 +1403,7 @@ function createInvSlot(item,from,index){
       updateInvScreen();
     }else if(item){
       draggingItem={id:item.id};draggingCount=item.count;
-      const targetArr=from==='inv'?inventory:from==='hotbar'?hotbar:from==='craft'?craftSlots:null;
+      const targetArr=from==='inv'?inventory:from==='hotbar'?hotbar:null;
       if(targetArr)targetArr[index+(from==='inv'?9:0)]=null;
       updateInvScreen();
     }
