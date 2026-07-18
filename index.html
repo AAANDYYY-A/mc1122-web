@@ -2097,19 +2097,26 @@ function updateBlockInteraction(dt){
 
     // Left click - break
     if(mouseButtons.left){
-      const hardness=HARDNESS[looked.block]||20;
-      const speed=gameMode==='creative'?1:player.breakingSpeed;
-      blockBreakingProgress+=dt*20*speed;
-      if(blockBreakingPos&&!blockBreakingPos.equals(looked.pos))blockBreakingProgress=0;
-      blockBreakingPos=looked.pos.clone();
-      blockBreakingTarget=looked;
-      breakingOverlay.position.copy(highlightBox.position);
-      breakingOverlay.material.opacity=Math.min(0.7,blockBreakingProgress/hardness*0.7);
-      breakingOverlay.visible=true;
-      if(blockBreakingProgress>=hardness){
+      if(gameMode==='creative'){
+        // Creative: instant break
         breakBlock(looked.pos);
         blockBreakingProgress=0;
         breakingOverlay.visible=false;
+      }else{
+        const hardness=HARDNESS[looked.block]||20;
+        const speed=player.breakingSpeed;
+        blockBreakingProgress+=dt*20*speed;
+        if(blockBreakingPos&&!blockBreakingPos.equals(looked.pos))blockBreakingProgress=0;
+        blockBreakingPos=looked.pos.clone();
+        blockBreakingTarget=looked;
+        breakingOverlay.position.copy(highlightBox.position);
+        breakingOverlay.material.opacity=Math.min(0.7,blockBreakingProgress/hardness*0.7);
+        breakingOverlay.visible=true;
+        if(blockBreakingProgress>=hardness){
+          breakBlock(looked.pos);
+          blockBreakingProgress=0;
+          breakingOverlay.visible=false;
+        }
       }
     }
 
