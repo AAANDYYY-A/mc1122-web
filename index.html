@@ -594,11 +594,9 @@ function init(){
       hasSaveData().then(hd=>{if(hd)document.getElementById('play-btn').textContent='继续游戏';});
     }
   });
-}
-
+ 
   // Settings functions
   function openSettings(){
-    if(!gameStarted&&!document.getElementById('blocker').classList.contains('hidden'))return;
     document.getElementById('set-render-dist').value=VIEW_DISTANCE;
     document.getElementById('set-render-dist-val').textContent=VIEW_DISTANCE;
     document.getElementById('set-brightness').value=brightness;
