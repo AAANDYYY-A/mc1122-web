@@ -1308,6 +1308,7 @@ function updateUI(){
   for(let i=0;i<9;i++){
     const slot=document.createElement('div');
     slot.className='hotbar-slot'+(i===selectedSlot?' selected':'');
+    slot.dataset.slotIndex=i;
     if(hotbar[i]){
       const item=hotbar[i];
       const icon=document.createElement('span');
@@ -1321,8 +1322,6 @@ function updateUI(){
         slot.appendChild(cnt);
       }
     }
-    // Tap to select on mobile
-    slot.onclick=()=>{selectedSlot=i;updateUI();};
     hud.appendChild(slot);
   }
   // Health
@@ -1911,6 +1910,16 @@ function setupMobileControls(){
     syncHotbarFromInv();
     document.getElementById('inventory-screen').classList.remove('active');
     updateUI();
+  });
+
+  // HUD hotbar tap → switch slot (event delegation, survives per-frame rebuild)
+  document.getElementById('hud').addEventListener('pointerdown',(e)=>{
+    const slot=e.target.closest('.hotbar-slot');
+    if(slot&&slot.dataset.slotIndex!==undefined){
+      e.preventDefault();
+      selectedSlot=parseInt(slot.dataset.slotIndex);
+      updateUI();
+    }
   });
 }
 
