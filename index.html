@@ -173,6 +173,7 @@ canvas{display:block;}
 <div id="mobile-controls">
   <div id="mobile-top-bar">
     <button class="mbtn" id="mbtn-inv" title="物品栏">📦</button>
+    <button class="mbtn" id="mbtn-save" title="保存">💾</button>
     <button class="mbtn" id="mbtn-pause" title="暂停">⏸</button>
     <button class="mbtn" id="mbtn-debug" title="调试">📊</button>
     <button class="mbtn" id="mbtn-chat" title="聊天">💬</button>
@@ -1888,6 +1889,10 @@ function setupMobileControls(){
     isInventoryOpen=!isInventoryOpen;
     if(isInventoryOpen){syncInvFromHotbar();updateInvScreen();document.getElementById('inventory-screen').classList.add('active');}
     else{syncHotbarFromInv();document.getElementById('inventory-screen').classList.remove('active');updateUI();}
+  });
+  btn('mbtn-save',()=>{
+    saveGame();
+    addChatMessage('[存档] 已保存！');
   });
   btn('mbtn-pause',()=>{
     isPaused=true;
