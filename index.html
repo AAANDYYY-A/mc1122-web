@@ -240,6 +240,7 @@ canvas{display:block;}
   <div id="mobile-top-bar">
     <button class="mbtn" id="mbtn-inv" title="物品栏">📦</button>
     <button class="mbtn" id="mbtn-save" title="保存">💾</button>
+    <button class="mbtn" id="mbtn-fullscreen" title="全屏">⛶</button>
     <button class="mbtn" id="mbtn-pause" title="暂停">⏸</button>
     <button class="mbtn" id="mbtn-debug" title="调试">📊</button>
     <button class="mbtn" id="mbtn-chat" title="聊天">💬</button>
@@ -2056,6 +2057,18 @@ function setupMobileControls(){
 
   // Drop button
   btn('mbtn-drop',()=>{dropSelectedItem();});
+
+  // Fullscreen toggle
+  btn('mbtn-fullscreen',()=>{
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+      // Try landscape lock
+      try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
+    }else{
+      document.exitFullscreen();
+      try{screen.orientation.unlock();}catch(e){}
+    }
+  });
 
   // Break button - hold to break
   btn('mbtn-break',()=>{
