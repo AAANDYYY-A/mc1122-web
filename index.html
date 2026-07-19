@@ -167,6 +167,7 @@ canvas{display:block;}
   <h2>游戏暂停</h2>
   <button id="pause-continue">继续游戏</button>
   <button id="pause-save">保存存档</button>
+  <button id="pause-autosave">自动保存：关</button>
   <button id="pause-quit" class="danger">退出世界</button>
 </div>
 <!-- ============ MOBILE CONTROLS ============ -->
@@ -384,6 +385,7 @@ let playerOnGround=false,playerFlying=false,playerFlyTimer=0,lastSpaceTime=0;
 let isThirdPerson=false;
 let chatMessages=[],chatOpen=false,debugOpen=false;
 let lookAtEntity=null,tradingWith=null;
+let autoSaveEnabled=false,autoSaveInterval=300,autoSaveTimer=0;
 
 // Input state
 const keys={};
@@ -454,7 +456,12 @@ function init(){
     const isMobile=window.matchMedia('(pointer:coarse)').matches||window.innerWidth<768;
     if(!isMobile)renderer.domElement.requestPointerLock();
   });
-  document.getElementById('pause-save').addEventListener('click',()=>{saveGame();});
+  document.getElementById('pause-save').addEventListener('click',()=>{saveGame();addChatMessage('[存档] 已保存！');});
+  document.getElementById('pause-autosave').addEventListener('click',()=>{
+    autoSaveEnabled=!autoSaveEnabled;
+    document.getElementById('pause-autosave').textContent='自动保存：'+(autoSaveEnabled?'开':'关');
+    addChatMessage('[自动保存] '+(autoSaveEnabled?'已开启 (每5分钟)':'已关闭'));
+  });
   document.getElementById('pause-quit').addEventListener('click',()=>{
     if(confirm('确定要退出世界吗？未保存的进度将丢失！')){
       // Clean up
@@ -1479,7 +1486,8 @@ function buildLevelDat(worldName){
         doDaylightCycle:gameruleDaylight?'true':'false',
         doWeatherCycle:gameruleWeather?'true':'false',
         keepInventory:gameruleKeepInv?'true':'false'
-      }
+      },
+      AutoSave:autoSaveEnabled?1:0
     }
   };
 }
@@ -1537,6 +1545,8 @@ async function loadGame(worldName){
       gameruleWeather=d.GameRules.doWeatherCycle!=='false';
       gameruleKeepInv=d.GameRules.keepInventory==='true';
     }
+    if(d.AutoSave!==undefined){autoSaveEnabled=!!d.AutoSave;}
+    if(autoSaveEnabled)document.getElementById('pause-autosave').textContent='自动保存：开';
     addChatMessage(`[存档] 「${name}」加载成功！`);
     return true;
   }catch(e){addChatMessage('[存档] 加载失败: '+e.message);return false;}
@@ -2054,6 +2064,16 @@ function gameLoop(){
   lastChunkUpdate+=dt;
   if(lastChunkUpdate>0.5){updateChunks();lastChunkUpdate=0;}
   processChunkBuildQueue(); // Process build queue every frame
+
+  // Auto-save
+  if(autoSaveEnabled){
+    autoSaveTimer+=dt;
+    if(autoSaveTimer>=autoSaveInterval){
+      autoSaveTimer=0;
+      saveGame();
+      addChatMessage('[自动保存] 存档已保存');
+    }
+  }
 
   // Entities
   for(const e of entities){
