@@ -105,6 +105,46 @@ canvas{display:block;}
 /* Show mobile controls on touch devices */
 @media(pointer:coarse){#mobile-controls{display:block;}}
 @media(max-width:768px){#mobile-controls{display:block;}}
+/* ===== CREATIVE INVENTORY ===== */
+#creative-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:210;display:none;}
+#creative-screen.active{display:flex;flex-direction:column;align-items:center;padding-top:10px;}
+.cr-container{background:rgba(40,40,40,0.96);border:3px solid #555;width:96%;max-width:700px;height:88%;display:flex;flex-direction:column;border-radius:4px;overflow:hidden;}
+.cr-top{display:flex;flex:1;overflow:hidden;}
+.cr-tabs{width:38px;background:rgba(0,0,0,0.5);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;border-right:2px solid #444;}
+.cr-tab{padding:8px 4px;text-align:center;cursor:pointer;font-size:16px;border-bottom:1px solid #333;user-select:none;transition:background 0.1s;}
+.cr-tab:hover{background:rgba(255,255,255,0.1);}
+.cr-tab.active{background:rgba(255,255,255,0.25);border-left:3px solid #fff;}
+.cr-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.cr-search-row{display:flex;gap:4px;padding:6px 8px;background:rgba(0,0,0,0.4);}
+.cr-search-row input{flex:1;background:rgba(0,0,0,0.5);border:1px solid #555;color:#fff;padding:4px 8px;font-size:13px;font-family:inherit;outline:none;}
+.cr-search-row input:focus{border-color:#aaa;}
+.cr-search-row button{background:#444;border:1px solid #666;color:#fff;padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;border-radius:3px;white-space:nowrap;}
+.cr-search-row button:hover{background:#666;}
+.cr-items{flex:1;overflow-y:auto;padding:4px;display:grid;grid-template-columns:repeat(auto-fill,40px);gap:2px;align-content:start;justify-content:center;}
+.cr-items .cr-item{width:40px;height:40px;border:2px solid #555;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:20px;user-select:none;}
+.cr-items .cr-item:hover{border-color:#fff;background:rgba(255,255,255,0.25);z-index:1;}
+.cr-items .cr-item:active{border-color:#ff0;}
+.cr-bottom{display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,0,0,0.5);border-top:2px solid #444;}
+.cr-destroy{width:36px;height:36px;border:2px dashed #a33;background:rgba(150,30,30,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border-radius:3px;flex-shrink:0;}
+.cr-destroy:hover{background:rgba(200,40,40,0.5);border-color:#f44;}
+.cr-hotbar{display:flex;gap:2px;flex:1;justify-content:center;}
+.cr-hotbar .cr-slot{width:36px;height:36px;border:2px solid #666;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:18px;}
+.cr-hotbar .cr-slot.selected{border-color:#fff;background:rgba(255,255,255,0.3);}
+.cr-hotbar .cr-slot:hover{border-color:#ccc;}
+.cr-equip{display:flex;gap:3px;flex-shrink:0;}
+.cr-equip .equip-slot{width:30px;height:30px;border:2px solid #555;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.cr-close-btn{background:rgba(180,40,40,0.9);border:2px solid #a33;color:#fff;padding:8px 24px;font-size:14px;cursor:pointer;font-family:inherit;border-radius:4px;margin-top:6px;}
+.cr-close-btn:hover{background:rgba(220,50,50,0.95);}
+@media(max-width:768px){
+  .cr-container{width:100%;height:92%;max-width:none;}
+  .cr-items{grid-template-columns:repeat(auto-fill,34px);gap:1px;}
+  .cr-items .cr-item{width:34px;height:34px;font-size:16px;}
+  .cr-tabs{width:32px;}
+  .cr-tab{font-size:14px;padding:6px 2px;}
+  .cr-hotbar .cr-slot{width:30px;height:30px;font-size:14px;}
+  .cr-destroy{width:28px;height:28px;}
+  .cr-equip .equip-slot{width:24px;height:24px;}
+}
 </style>
 </head>
 <body>
@@ -136,6 +176,30 @@ canvas{display:block;}
       <div class="equip-slot" id="offhand-slot" title="副手" style="margin-left:20px;"></div>
     </div>
   </div>
+</div>
+<!-- ===== CREATIVE INVENTORY ===== -->
+<div id="creative-screen">
+  <div class="cr-container">
+    <div class="cr-top">
+      <div class="cr-tabs" id="cr-tabs"></div>
+      <div class="cr-right">
+        <div class="cr-search-row"><input type="text" id="cr-search" placeholder="搜索物品..."><button id="cr-save-bar">💾存</button><button id="cr-load-bar">📥取</button></div>
+        <div class="cr-items" id="cr-items"></div>
+      </div>
+    </div>
+    <div class="cr-bottom">
+      <div class="cr-destroy" id="cr-destroy" title="销毁物品">🗑️</div>
+      <div class="cr-hotbar" id="cr-hotbar"></div>
+      <div class="cr-equip">
+        <div class="equip-slot" id="cr-helm" title="头盔"></div>
+        <div class="equip-slot" id="cr-chest" title="胸甲"></div>
+        <div class="equip-slot" id="cr-legs" title="护腿"></div>
+        <div class="equip-slot" id="cr-boots" title="靴子"></div>
+        <div class="equip-slot" id="cr-offhand" title="副手"></div>
+      </div>
+    </div>
+  </div>
+  <button class="cr-close-btn" id="cr-close">✕ 关闭</button>
 </div>
 <div id="furnace-screen">
   <div class="inv-title" style="margin-bottom:10px;">熔炉</div>
@@ -2127,6 +2191,235 @@ function updateModeUI(){
   const el=document.getElementById('mode-indicator');
   if(el)el.textContent=gameMode==='creative'?'⚡创造':'🏕生存';
 }
+
+// ============ CREATIVE INVENTORY ============
+// Creative tabs with all game items organized by category
+const CREATIVE_TABS=[
+  {icon:'🧱',name:'建筑',items:null}, // built below
+  {icon:'🛋️',name:'装饰',items:null},
+  {icon:'⚡',name:'红石',items:null},
+  {icon:'🍎',name:'食物',items:null},
+  {icon:'🔧',name:'工具',items:null},
+  {icon:'⚔️',name:'战斗',items:null},
+  {icon:'🧪',name:'材料',items:null}
+];
+// Build tab items using blockItemId for blocks and ITEM.* for items
+(function buildCreativeTabs(){
+  const B=BLOCK,b=blockItemId,I=ITEM;
+  CREATIVE_TABS[0].items=[b(B.STONE),b(B.GRASS),b(B.DIRT),b(B.COBBLESTONE),b(B.PLANKS),b(B.SAND),b(B.GRAVEL),b(B.SANDSTONE),b(B.BRICK),b(B.STONE_BRICK),b(B.OBSIDIAN),b(B.GLASS),b(B.LOG_OAK),b(B.LOG_BIRCH),b(B.LOG_SPRUCE),b(B.LOG_DARK),b(B.LOG_JUNGLE),b(B.LOG_ACACIA),b(B.LEAVES_OAK),b(B.LEAVES_BIRCH),b(B.LEAVES_SPRUCE),b(B.LEAVES_DARK),b(B.LEAVES_JUNGLE),b(B.LEAVES_ACACIA),b(B.SNOW),b(B.ICE),b(B.CLAY),b(B.TERRACOTTA),b(B.CONCRETE_WHITE),b(B.CONCRETE_POWDER_WHITE),b(B.GLAZED_TERRACOTTA_WHITE),b(B.WOOL_WHITE),b(B.WOOL_RED),b(B.NETHERRACK),b(B.SOUL_SAND),b(B.GLOWSTONE),b(B.END_STONE),b(B.IRON_BLOCK),b(B.GOLD_BLOCK),b(B.DIAMOND_BLOCK),b(B.BOOKSHELF),b(B.MOSSY_COBBLE),b(B.HAY_BALE),b(B.BONE_BLOCK),b(B.MYCELIUM),b(B.PODZOL),b(B.PORTAL),b(B.END_PORTAL),b(B.END_PORTAL_FRAME),b(B.BEDROCK),b(B.MELON),b(B.PUMPKIN),b(B.CACTUS)];
+  CREATIVE_TABS[1].items=[b(B.TORCH),b(B.CRAFTING_TABLE),b(B.FURNACE),b(B.CHEST),b(B.ENDER_CHEST),b(B.ENCHANT_TABLE),b(B.ANVIL),b(B.BED),b(B.CAKE),b(B.DOOR_WOOD),b(B.TRAPDOOR),b(B.FENCE_GATE),b(B.TALL_GRASS),b(B.DEAD_BUSH),b(B.DANDELION),b(B.POPPY),b(B.SUGAR_CANE),b(B.LILY_PAD),b(B.VINE),b(B.COBWEB),b(B.DISPENSER),b(B.PISTON),b(B.STICKY_PISTON),b(B.REDSTONE_LAMP),b(B.NOTE_BLOCK),b(B.BREWING_STAND),b(B.SPAWNER),b(B.RAIL),b(B.POWERED_RAIL),b(B.DETECTOR_RAIL)];
+  CREATIVE_TABS[2].items=[b(B.REDSTONE_DUST),b(B.REDSTONE_TORCH),b(B.REDSTONE_REPEATER),b(B.REDSTONE_COMPARATOR),b(B.DISPENSER),b(B.DROPPER),b(B.PISTON),b(B.STICKY_PISTON),b(B.REDSTONE_LAMP),b(B.NOTE_BLOCK),b(B.TRIPWIRE_HOOK),b(B.STONE_PRESSURE),b(B.WOOD_BUTTON),b(B.DETECTOR_RAIL),b(B.POWERED_RAIL)];
+  CREATIVE_TABS[3].items=[I.APPLE,I.BREAD,I.RAW_PORKCHOP,I.COOKED_PORKCHOP,I.STEAK,I.COOKED_CHICKEN,I.MUSHROOM_STEW,I.EGG,I.SUGAR];
+  CREATIVE_TABS[4].items=[I.WOOD_PICKAXE,I.STONE_PICKAXE,I.IRON_PICKAXE,I.DIAMOND_PICKAXE,I.WOOD_AXE,I.STONE_AXE,I.IRON_AXE,I.DIAMOND_AXE,I.WOOD_SHOVEL,I.STONE_SHOVEL,I.IRON_SHOVEL,I.DIAMOND_SHOVEL,I.WOOD_HOE,I.STONE_HOE,I.IRON_HOE,I.DIAMOND_HOE,I.FLINT_AND_STEEL,I.BOW,I.ARROW,I.SHIELD,I.FISHING_ROD||-1];
+  CREATIVE_TABS[5].items=[I.WOOD_SWORD,I.STONE_SWORD,I.IRON_SWORD,I.DIAMOND_SWORD,I.BOW,I.ARROW,I.SHIELD,I.LEATHER_HELMET,I.LEATHER_CHEST,I.LEATHER_LEGS,I.LEATHER_BOOTS,I.IRON_HELMET,I.IRON_CHEST,I.IRON_LEGS,I.IRON_BOOTS,I.DIAMOND_HELMET,I.DIAMOND_CHEST,I.DIAMOND_LEGS,I.DIAMOND_BOOTS,I.GOLD_HELMET,I.GOLD_CHEST,I.GOLD_LEGS,I.GOLD_BOOTS];
+  CREATIVE_TABS[6].items=[I.STICK,I.COAL,I.CHARCOAL,I.IRON_INGOT,I.GOLD_INGOT,I.DIAMOND,I.REDSTONE,I.LAPIS,I.EMERALD,I.STRING,I.FEATHER,I.LEATHER,I.BONE,I.ENDER_PEARL,I.PAPER,I.SUGAR,I.GUNPOWDER,I.BLAZE_ROD,I.GHAST_TEAR,I.SLIME_BALL,I.ENDER_EYE,I.NETHER_STAR,I.SPIDER_EYE,I.BOTTLE,I.POTION,I.BOOK,I.ENCHANTED_BOOK,I.NAME_TAG,I.BOWL,I.BUCKET,I.WATER_BUCKET,I.LAVA_BUCKET];
+  // Filter out invalid items
+  for(const t of CREATIVE_TABS)t.items=t.items.filter(id=>id>0&&itemOrBlockExists(id));
+})();
+function itemOrBlockExists(id){return isBlockItem(id)?itemToBlock(id)!==null:ITEM_NAMES[id]!==undefined;}
+
+let crTabIdx=0,crPickedItem=null,crPickedCount=0;
+let crHotbarSaved=[]; // up to9 sets of hotbar configs
+
+function openCreativeInv(){
+  isInventoryOpen=true;
+  document.exitPointerLock();
+  syncInvFromHotbar();
+  crPickedItem=null;crPickedCount=0;
+  document.getElementById('creative-screen').classList.add('active');
+  document.getElementById('cr-search').value='';
+  renderCreativeTabs();
+  renderCreativeItems();
+  renderCreativeHotbar();
+  renderCreativeEquip();
+}
+function closeCreativeInv(){
+  isInventoryOpen=false;
+  syncHotbarFromInv();
+  document.getElementById('creative-screen').classList.remove('active');
+  updateUI();
+}
+
+function renderCreativeTabs(){
+  const tabs=document.getElementById('cr-tabs');
+  tabs.innerHTML='';
+  CREATIVE_TABS.forEach((t,i)=>{
+    const el=document.createElement('div');
+    el.className='cr-tab'+(i===crTabIdx?' active':'');
+    el.title=t.name;el.textContent=t.icon;
+    el.onclick=()=>{crTabIdx=i;renderCreativeTabs();renderCreativeItems();};
+    tabs.appendChild(el);
+  });
+}
+function getFilteredItems(){
+  const q=(document.getElementById('cr-search').value||'').toLowerCase().trim();
+  if(q)return CREATIVE_TABS.flatMap(t=>t.items).filter(id=>getItemName(id).toLowerCase().includes(q));
+  return CREATIVE_TABS[crTabIdx].items;
+}
+function getItemName(itemId){
+  if(isBlockItem(itemId)){const b=itemToBlock(itemId);if(b!==null)return BLOCK_NAMES[b]||'';return '';}
+  return ITEM_NAMES[itemId]||'';
+}
+
+function renderCreativeItems(){
+  const grid=document.getElementById('cr-items');
+  grid.innerHTML='';
+  const items=getFilteredItems();
+  items.forEach(itemId=>{
+    const el=document.createElement('div');
+    el.className='cr-item';
+    el.title=getItemName(itemId);
+    el.textContent=getItemIcon(itemId);
+    el.onpointerdown=(e)=>{
+      e.preventDefault();
+      if(e.button===0){// left = full stack
+        crPickedItem=itemId;crPickedCount=64;
+        addChatMessage('[创造] 已选取 '+getItemName(itemId)+' x64');
+      }else if(e.button===2){// right =1
+        crPickedItem=itemId;crPickedCount=(crPickedItem===itemId&&crPickedCount<64)?crPickedCount+1:1;
+        addChatMessage('[创造] 已选取 '+getItemName(itemId)+' x'+crPickedCount);
+      }
+      renderCreativeHotbar();
+    };
+    el.oncontextmenu=e=>e.preventDefault();
+    grid.appendChild(el);
+  });
+}
+
+function renderCreativeHotbar(){
+  const hb=document.getElementById('cr-hotbar');
+  hb.innerHTML='';
+  for(let i=0;i<9;i++){
+    const slot=document.createElement('div');
+    slot.className='cr-slot'+(i===selectedSlot?' selected':'');
+    if(hotbar[i]){
+      slot.textContent=getItemIcon(hotbar[i].id);
+      const cnt=document.createElement('span');
+      cnt.style.cssText='position:absolute;bottom:1px;right:3px;color:#fff;font-size:9px;text-shadow:1px1px0#000;';
+      cnt.textContent=hotbar[i].count;slot.appendChild(cnt);
+    }
+    // Click empty slot to place picked item, click filled slot to switch selection
+    slot.onclick=()=>{
+      if(crPickedItem!==null){
+        hotbar[i]={id:crPickedItem,count:crPickedCount};
+        crPickedItem=null;crPickedCount=0;
+        renderCreativeHotbar();
+      }else{
+        selectedSlot=i;renderCreativeHotbar();updateUI();
+      }
+    };
+    // Drop picked item onto filled slot
+    slot.oncontextmenu=e=>{e.preventDefault();
+      if(crPickedItem!==null){
+        hotbar[i]={id:crPickedItem,count:crPickedCount};
+        crPickedItem=null;crPickedCount=0;
+        renderCreativeHotbar();
+      }
+    };
+    hb.appendChild(slot);
+  }
+}
+function renderCreativeEquip(){
+  const update=(id,item)=>{const el=document.getElementById(id);if(el){el.innerHTML='';if(item)el.textContent=getItemIcon(item.id);}};
+  update('cr-helm',armor[0]);update('cr-chest',armor[1]);
+  update('cr-legs',armor[2]);update('cr-boots',armor[3]);update('cr-offhand',offhand);
+}
+
+// Destroy slot
+function setupCreativeDestroy(){
+  const d=document.getElementById('cr-destroy');
+  d.onclick=()=>{
+    if(crPickedItem!==null){crPickedItem=null;crPickedCount=0;addChatMessage('[创造] 已销毁');renderCreativeHotbar();}
+  };
+  // Also allow dropping items from hotbar by right-clicking destroy
+  d.oncontextmenu=e=>{e.preventDefault();crPickedItem=null;crPickedCount=0;renderCreativeHotbar();};
+}
+
+// Search
+function setupCreativeSearch(){
+  document.getElementById('cr-search').addEventListener('input',renderCreativeItems);
+}
+
+// Hotbar save/load
+function setupCreativeSaveLoad(){
+  document.getElementById('cr-save-bar').onclick=()=>{
+    crHotbarSaved.push(hotbar.map(s=>s?{id:s.id,count:s.count}:null));
+    if(crHotbarSaved.length>9)crHotbarSaved.shift();
+    addChatMessage('[快捷栏] 已保存第'+crHotbarSaved.length+'套配置');
+    // Persist to localStorage
+    try{localStorage.setItem('mc1122_cr_hotbars',JSON.stringify(crHotbarSaved));}catch(e){}
+  };
+  document.getElementById('cr-load-bar').onclick=()=>{
+    if(crHotbarSaved.length===0){addChatMessage('[快捷栏] 没有已保存的配置');return;}
+    const set=crHotbarSaved[crHotbarSaved.length-1]; // load latest
+    for(let i=0;i<9;i++)hotbar[i]=set[i]?{id:set[i].id,count:set[i].count}:null;
+    renderCreativeHotbar();updateUI();
+    addChatMessage('[快捷栏] 已加载配置');
+  };
+  // Load saved from localStorage
+  try{const s=localStorage.getItem('mc1122_cr_hotbars');if(s)crHotbarSaved=JSON.parse(s);}catch(e){}
+}
+
+// Close button
+function setupCreativeClose(){
+  document.getElementById('cr-close').onclick=closeCreativeInv;
+  // ESC to close
+  document.addEventListener('keydown',(e)=>{
+    if(e.code==='Escape'&&document.getElementById('creative-screen').classList.contains('active')){
+      closeCreativeInv();
+    }
+  });
+}
+
+// Init creative inventory on first open
+let creativeInvInited=false;
+function initCreativeInv(){
+  if(creativeInvInited)return;creativeInvInited=true;
+  setupCreativeDestroy();
+  setupCreativeSearch();
+  setupCreativeSaveLoad();
+  setupCreativeClose();
+}
+
+// Override inventory open: in creative mode use creative screen
+const _origOnKeyDown_inv=onKeyDown;
+onKeyDown=function(e){
+  if(e.code==='KeyE'&&gameStarted&&!chatOpen&&!isFurnaceOpen&&gameMode==='creative'){
+    if(isInventoryOpen&&document.getElementById('creative-screen').classList.contains('active')){
+      closeCreativeInv();
+    }else{
+      initCreativeInv();
+      openCreativeInv();
+    }
+    return;
+  }
+  _origOnKeyDown_inv(e);
+};
+// Also override mobile inventory button
+(function(){
+  const origSetup=setupMobileControls;
+  setupMobileControls=function(){
+    origSetup();
+    const invBtn=document.getElementById('mbtn-inv');
+    if(invBtn){
+      invBtn.onpointerdown=function(e){
+        e.preventDefault();
+        if(gameMode==='creative'){
+          if(isInventoryOpen&&document.getElementById('creative-screen').classList.contains('active')){
+            closeCreativeInv();
+          }else{
+            initCreativeInv();
+            openCreativeInv();
+          }
+        }else{
+          isInventoryOpen=!isInventoryOpen;
+          if(isInventoryOpen){syncInvFromHotbar();updateInvScreen();document.getElementById('inventory-screen').classList.add('active');}
+          else{syncHotbarFromInv();document.getElementById('inventory-screen').classList.remove('active');updateUI();}
+        }
+      };
+    }
+  };
+})();
 
 // ============ START ============
 init();
