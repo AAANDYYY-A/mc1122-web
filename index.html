@@ -2455,7 +2455,10 @@ onKeyDown=function(e){
     origSetup();
     const invBtn=document.getElementById('mbtn-inv');
     if(invBtn){
-      invBtn.onpointerdown=function(e){
+      // Clone to remove all existing listeners
+      const newBtn=invBtn.cloneNode(true);
+      invBtn.parentNode.replaceChild(newBtn,invBtn);
+      newBtn.addEventListener('pointerdown',function(e){
         e.preventDefault();
         if(gameMode==='creative'){
           if(isInventoryOpen&&document.getElementById('creative-screen').classList.contains('active')){
@@ -2469,7 +2472,7 @@ onKeyDown=function(e){
           if(isInventoryOpen){syncInvFromHotbar();updateInvScreen();document.getElementById('inventory-screen').classList.add('active');}
           else{syncHotbarFromInv();document.getElementById('inventory-screen').classList.remove('active');updateUI();}
         }
-      };
+      });
     }
   };
 })();
