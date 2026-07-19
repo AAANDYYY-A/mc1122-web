@@ -88,6 +88,20 @@ canvas{display:block;}
 #pause-menu button:active{transform:scale(0.97);}
 #pause-menu button.danger{background:#8b3333;border-color:#5a2222;}
 #pause-menu button.danger:hover{background:#aa4444;}
+/* Settings Panel */
+#settings-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:260;display:none;align-items:center;justify-content:center;}
+#settings-screen.active{display:flex;}
+.settings-panel{background:rgba(40,35,30,0.96);border:4px solid #5c3a1e;padding:25px 30px;border-radius:6px;min-width:340px;max-width:420px;width:90%;}
+.settings-panel h2{color:#fff;font-size:26px;margin-bottom:20px;text-align:center;text-shadow:2px 2px 0 #333;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;margin:12px 0;color:#ccc;font-size:15px;gap:12px;}
+.settings-row label{flex-shrink:0;min-width:90px;}
+.settings-row input[type=range]{flex:1;accent-color:#5d5;height:6px;}
+.settings-row .val{color:#fff;min-width:28px;text-align:right;font-weight:bold;}
+.settings-row select{background:#3a2210;color:#fff;border:2px solid #5c3a1e;padding:4px 10px;font-family:inherit;font-size:14px;border-radius:3px;}
+.settings-row button.toggle-btn{background:#444;border:2px solid #666;color:#fff;padding:6px 18px;font-family:inherit;font-size:14px;cursor:pointer;border-radius:4px;min-width:70px;transition:all 0.15s;}
+.settings-row button.toggle-btn.on{background:#3a7a3a;border-color:#5a5;color:#fff;}
+.settings-close{margin-top:20px;width:100%;background:#5c3a1e;border:3px solid #3a2210;color:#fff;padding:10px;font-size:16px;cursor:pointer;font-family:inherit;border-radius:4px;transition:all 0.15s;}
+.settings-close:hover{background:#7a4f2e;}
 /* ============ MOBILE CONTROLS ============ */
 #mobile-controls{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:60;pointer-events:none;}
 #mobile-controls>*{pointer-events:auto;}
@@ -234,6 +248,27 @@ canvas{display:block;}
   <button id="pause-save">保存存档</button>
   <button id="pause-autosave">自动保存：关</button>
   <button id="pause-quit" class="danger">退出世界</button>
+</div>
+<!-- Settings Panel -->
+<div id="settings-screen">
+  <div class="settings-panel">
+    <h2>⚙️ 设置</h2>
+    <div class="settings-row">
+      <label>区块范围</label>
+      <input type="range" id="set-render-dist" min="2" max="12" value="4" step="1">
+      <span class="val" id="set-render-dist-val">4</span>
+    </div>
+    <div class="settings-row">
+      <label>亮度</label>
+      <input type="range" id="set-brightness" min="0" max="100" value="80" step="1">
+      <span class="val" id="set-brightness-val">80</span>
+    </div>
+    <div class="settings-row">
+      <label>终为白日</label>
+      <button class="toggle-btn" id="set-always-day">关</button>
+    </div>
+    <button class="settings-close" id="settings-close-btn">完成</button>
+  </div>
 </div>
 <!-- ============ MOBILE CONTROLS ============ -->
 <div id="mobile-controls">
@@ -429,7 +464,9 @@ const BIOME_GRASS_COLORS={
 };
 
 // ============ GAME STATE ============
-const CHUNK_SIZE=16,CHUNK_HEIGHT=96,VIEW_DISTANCE=4;
+const CHUNK_SIZE=16,CHUNK_HEIGHT=96;
+let VIEW_DISTANCE=4;
+let brightness=80; // 0-100
 let gameMode='survival'; // survival|creative
 let worldSeed=Math.floor(Math.random()*2147483647);
 let noise1,noise2,noise3;
@@ -453,6 +490,7 @@ let isThirdPerson=false;
 let chatMessages=[],chatOpen=false,debugOpen=false;
 let lookAtEntity=null,tradingWith=null;
 let autoSaveEnabled=false,autoSaveInterval=300,autoSaveTimer=0;
+let prevBrightness=80,prevViewDist=4;
 
 // Input state
 const keys={};
@@ -515,7 +553,21 @@ function init(){
 
   document.getElementById('play-btn').addEventListener('click',startGame);
   document.getElementById('newgame-btn').addEventListener('click',startNewGame);
-  document.getElementById('settings-btn').addEventListener('click',()=>alert('设置：可调整音量和视距。\n音量控制使用系统音量。'));
+  document.getElementById('settings-btn').addEventListener('click',openSettings);
+
+  // Settings panel events
+  document.getElementById('settings-close-btn').addEventListener('click',closeSettings);
+  document.getElementById('set-render-dist').addEventListener('input',function(){
+    document.getElementById('set-render-dist-val').textContent=this.value;
+  });
+  document.getElementById('set-brightness').addEventListener('input',function(){
+    document.getElementById('set-brightness-val').textContent=this.value;
+  });
+  document.getElementById('set-always-day').addEventListener('click',function(){
+    gameruleDaylight=!gameruleDaylight;
+    this.textContent=gameruleDaylight?'开':'关';
+    this.classList.toggle('on',gameruleDaylight);
+  });
 
   // Pause menu buttons
   document.getElementById('pause-continue').addEventListener('click',()=>{
@@ -542,6 +594,30 @@ function init(){
       hasSaveData().then(hd=>{if(hd)document.getElementById('play-btn').textContent='继续游戏';});
     }
   });
+}
+
+  // Settings functions
+  function openSettings(){
+    if(!gameStarted&&!document.getElementById('blocker').classList.contains('hidden'))return;
+    document.getElementById('set-render-dist').value=VIEW_DISTANCE;
+    document.getElementById('set-render-dist-val').textContent=VIEW_DISTANCE;
+    document.getElementById('set-brightness').value=brightness;
+    document.getElementById('set-brightness-val').textContent=brightness;
+    const dayBtn=document.getElementById('set-always-day');
+    dayBtn.textContent=gameruleDaylight?'开':'关';
+    dayBtn.classList.toggle('on',gameruleDaylight);
+    document.getElementById('settings-screen').classList.add('active');
+    if(gameStarted&&!isInventoryOpen){isPaused=true;}
+  }
+  function closeSettings(){
+    VIEW_DISTANCE=parseInt(document.getElementById('set-render-dist').value);
+    brightness=parseInt(document.getElementById('set-brightness').value);
+    document.getElementById('settings-screen').classList.remove('active');
+    if(isPaused&&!document.getElementById('pause-menu').classList.contains('active')){isPaused=false;}
+    if(brightness!==prevBrightness){if(ambientLight)ambientLight.intensity=brightness/100;prevBrightness=brightness;}
+    // Rebuild relevant meshes on next frame
+    if(prevViewDist!==VIEW_DISTANCE){prevViewDist=VIEW_DISTANCE;}
+  }
 
   // Pointer lock - only on desktop
   const isMobile=window.matchMedia('(pointer:coarse)').matches||window.innerWidth<768;
@@ -1472,14 +1548,17 @@ function spawnMobs(){
 // ============ TIME & WEATHER ============
 function updateTime(dt){
   timeOfDay=(timeOfDay+dt*20)%dayLength;
+  // Always day override
+  if(!gameruleDaylight){timeOfDay=6000;}
   // Sun position
   const angle=(timeOfDay/dayLength)*Math.PI*2;
   sunLight.position.set(Math.cos(angle)*150,Math.sin(angle)*150,50);
   // Light intensity
   const nightFac=Math.max(0,Math.min(1,Math.sin(angle)*1.5+0.5));
-  sunLight.intensity=0.3+nightFac*1.2;
-  ambientLight.intensity=0.3+nightFac*0.4;
-  scene.background=new THREE.Color().setHSL(0.57,0.5,0.3+nightFac*0.5);
+  const b=brightness/100;
+  sunLight.intensity=(0.3+nightFac*1.2)*b;
+  ambientLight.intensity=(0.3+nightFac*0.4)*b;
+  scene.background=new THREE.Color().setHSL(0.57,0.5,(0.3+nightFac*0.5)*b);
   scene.fog=new THREE.Fog(scene.background,CHUNK_SIZE*VIEW_DISTANCE*0.6,CHUNK_SIZE*VIEW_DISTANCE*(0.8+nightFac*0.3));
 
   // Weather
@@ -1672,7 +1751,9 @@ function buildLevelDat(worldName){
         doWeatherCycle:gameruleWeather?'true':'false',
         keepInventory:gameruleKeepInv?'true':'false'
       },
-      AutoSave:autoSaveEnabled?1:0
+      AutoSave:autoSaveEnabled?1:0,
+      ViewDistance:VIEW_DISTANCE,
+      Brightness:brightness
     }
   };
 }
@@ -1731,6 +1812,8 @@ async function loadGame(worldName){
       gameruleKeepInv=d.GameRules.keepInventory==='true';
     }
     if(d.AutoSave!==undefined){autoSaveEnabled=!!d.AutoSave;}
+    if(d.ViewDistance!==undefined){VIEW_DISTANCE=d.ViewDistance;prevViewDist=d.ViewDistance;}
+    if(d.Brightness!==undefined){brightness=d.Brightness;prevBrightness=d.Brightness;}
     if(autoSaveEnabled)document.getElementById('pause-autosave').textContent='自动保存：开';
     addChatMessage(`[存档] 「${name}」加载成功！`);
     return true;
