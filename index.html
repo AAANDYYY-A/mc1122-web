@@ -2235,7 +2235,7 @@ function openCreativeInv(){
 }
 function closeCreativeInv(){
   isInventoryOpen=false;
-  syncHotbarFromInv();
+  syncInvFromHotbar();
   document.getElementById('creative-screen').classList.remove('active');
   updateUI();
 }
