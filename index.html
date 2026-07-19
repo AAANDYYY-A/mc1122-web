@@ -152,6 +152,7 @@ canvas{display:block;}
   <h1>Minecraft 1.12.2</h1>
   <div class="sub">Web Edition — Three.js Powered</div>
   <button id="play-btn">单人游戏</button>
+  <button id="newgame-btn">新建存档</button>
   <button id="settings-btn">设置</button>
 </div>
 <div id="crosshair"><span></span><span class="v"></span></div>
@@ -511,6 +512,7 @@ function init(){
   window.addEventListener('resize',onResize);
 
   document.getElementById('play-btn').addEventListener('click',startGame);
+  document.getElementById('newgame-btn').addEventListener('click',startNewGame);
   document.getElementById('settings-btn').addEventListener('click',()=>alert('设置：可调整音量和视距。\n音量控制使用系统音量。'));
 
   // Pause menu buttons
@@ -610,6 +612,57 @@ async function startGame(){
   const isMobile=window.matchMedia('(pointer:coarse)').matches||window.innerWidth<768;
   if(!isMobile)renderer.domElement.requestPointerLock();
   updateUI();
+}
+
+async function startNewGame(){
+  // Delete existing save data
+  if(saveDB){
+    try{
+      const tx=saveDB.transaction('worlds','readwrite');
+      tx.objectStore('worlds').delete('saves/New World/level.dat');
+      tx.objectStore('worlds').delete('saves/New World/level.dat_old');
+    }catch(e){}
+  }
+  localStorage.removeItem('mc1122_save');
+  // Generate new random seed
+  worldSeed=Math.floor(Math.random()*2147483647);
+  reinitNoise(worldSeed);
+  // Clean up old chunks
+  for(const key in chunkMeshes){scene.remove(chunkMeshes[key]);if(chunkMeshes[key].children)chunkMeshes[key].children.forEach(c=>{if(c.geometry)c.geometry.dispose();});}
+  chunks={};chunkMeshes={};chunkBuildQueue=[];entities=[];
+  // Reset player
+  const spawnH=getHeight(0,0);
+  player.position.set(0,spawnH+2,0);
+  player.rotation.set(0,0,0);
+  camera.rotation.copy(player.rotation);
+  playerHealth=playerMaxHealth;playerHunger=20;
+  playerXP=0;playerLevel=0;
+  gameMode='survival';playerFlying=false;autoSaveEnabled=false;
+  timeOfDay=6000;weather='clear';weatherRaining=false;weatherThundering=false;
+  spawnPoint.set(0,spawnH,0);
+  for(let i=0;i<36;i++)inventory[i]=null;
+  inventory[0]={id:ITEM.WOOD_PICKAXE,count:1};
+  inventory[1]={id:ITEM.WOOD_AXE,count:1};
+  inventory[2]={id:ITEM.WOOD_SWORD,count:1};
+  inventory[3]={id:ITEM.WOOD_SHOVEL,count:1};
+  inventory[4]={id:ITEM.APPLE,count:5};
+  inventory[5]={id:ITEM.BREAD,count:3};
+  inventory[8]={id:blockItemId(BLOCK.TORCH),count:16};
+  syncHotbarFromInv();
+  selectedSlot=0;
+  camera.position.copy(player.position);
+  camera.position.y+=player.eyeHeight;
+  gameStarted=true;
+  document.getElementById('blocker').classList.add('hidden');
+  // Pre-generate spawn
+  const pcx=Math.floor(player.position.x/CHUNK_SIZE),pcz=Math.floor(player.position.z/CHUNK_SIZE);
+  for(const[dx,dz]of[[0,0],[1,0],[-1,0],[0,1],[0,-1]]){generateChunk(pcx+dx,pcz+dz);}
+  for(const[dx,dz]of[[0,0],[1,0],[-1,0],[0,1],[0,-1]]){buildChunkMesh(pcx+dx,pcz+dz);}
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){if(Math.abs(dx)<=1&&Math.abs(dz)<=1)continue;scheduleChunkBuild(pcx+dx,pcz+dz);}
+  addChatMessage('[系统] 新世界已创建！种子: '+worldSeed);
+  updateUI();
+  document.getElementById('pause-autosave').textContent='自动保存：关';
+  document.getElementById('play-btn').textContent='单人游戏';
 }
 
 // ============ WORLD GENERATION ============
