@@ -250,6 +250,7 @@ canvas{display:block;}
   <div id="mobile-btns">
     <button class="mbtn small" id="mbtn-sneak" title="潜行">🥾</button>
     <button class="mbtn small" id="mbtn-fly" title="飞行">🕊️</button>
+    <button class="mbtn small" id="mbtn-drop" title="丢弃">📤</button>
     <button class="mbtn" id="mbtn-break" title="挖掘/攻击">⛏️</button>
     <button class="mbtn" id="mbtn-place" title="放置/交互">🧱</button>
     <button class="mbtn jump" id="mbtn-jump" title="跳跃">▲</button>
@@ -629,7 +630,7 @@ async function startNewGame(){
   reinitNoise(worldSeed);
   // Clean up old chunks
   for(const key in chunkMeshes){scene.remove(chunkMeshes[key]);if(chunkMeshes[key].children)chunkMeshes[key].children.forEach(c=>{if(c.geometry)c.geometry.dispose();});}
-  chunks={};chunkMeshes={};chunkBuildQueue=[];entities=[];
+  chunks={};chunkMeshes={};chunkBuildQueue=[];entities=[];droppedItems.forEach(d=>scene.remove(d));droppedItems=[];
   // Reset player
   const spawnH=getHeight(0,0);
   player.position.set(0,spawnH+2,0);
@@ -1269,6 +1270,72 @@ function getSelectedItem(){
   return hotbar[selectedSlot];
 }
 
+// Drop currently held item
+function dropSelectedItem(){
+  const item=getSelectedItem();
+  if(!item)return;
+  const itemName=getItemName(item.id);
+  if(gameMode==='creative'){
+    // Creative: just remove, don't drop entity
+    hotbar[selectedSlot]=null;
+    addChatMessage('[丢弃] '+itemName);
+  }else{
+    // Survival: remove one and drop as entity
+    hotbar[selectedSlot].count--;
+    if(hotbar[selectedSlot].count<=0)hotbar[selectedSlot]=null;
+    // Spawn dropped item entity at player position
+    spawnDroppedItem(item.id,player.position.clone().add(new THREE.Vector3(0,player.eyeHeight,0)));
+    addChatMessage('[丢弃] '+itemName);
+  }
+  syncInvFromHotbar();
+  updateUI();
+}
+
+// Spawn a dropped item entity that can be picked up
+function spawnDroppedItem(itemId,pos){
+  const group=new THREE.Group();
+  const geo=new THREE.BoxGeometry(0.25,0.25,0.25);
+  const mat=new THREE.MeshLambertMaterial({color:0xffdd88});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.rotation.y=Math.random()*Math.PI;
+  group.add(mesh);
+  group.position.copy(pos).add(new THREE.Vector3((Math.random()-0.5)*0.3,0,(Math.random()-0.5)*0.3));
+  group.userData={itemId,life:60,vy:3,onGround:false};
+  scene.add(group);
+  // Track as entity for pickup
+  droppedItems.push(group);
+}
+
+let droppedItems=[];
+function updateDroppedItems(dt){
+  for(let i=droppedItems.length-1;i>=0;i--){
+    const d=droppedItems[i];
+    d.userData.life-=dt;
+    if(d.userData.life<=0){scene.remove(d);droppedItems.splice(i,1);continue;}
+    if(!d.userData.onGround){
+      d.userData.vy-=15*dt;
+      d.position.y+=d.userData.vy*dt;
+      const below=getBlock(Math.floor(d.position.x),Math.floor(d.position.y-0.1),Math.floor(d.position.z));
+      if(SOLID_BLOCKS.has(below)){d.position.y=Math.floor(d.position.y)+0.01;d.userData.onGround=true;}
+    }
+    d.rotation.y+=dt*2;
+    // Pickup check
+    if(player.position.distanceTo(d.position)<1.5){
+      const id=d.userData.itemId;
+      // Try add to hotbar first
+      let added=false;
+      if(gameMode==='creative'){added=true;} // creative: just absorb
+      else{
+        for(let j=0;j<36;j++){
+          if(inventory[j]&&inventory[j].id===id&&inventory[j].count<64){inventory[j].count++;added=true;break;}
+        }
+        if(!added)for(let j=0;j<36;j++){if(!inventory[j]){inventory[j]={id,count:1};added=true;break;}}
+      }
+      if(added){scene.remove(d);droppedItems.splice(i,1);syncHotbarFromInv();updateUI();}
+    }
+  }
+}
+
 // ============ MOBS ============
 class Entity{
   constructor(type,x,y,z){
@@ -1835,6 +1902,10 @@ function onKeyDown(e){
   if(e.code==='F5'&&gameStarted){isThirdPerson=!isThirdPerson;addChatMessage(isThirdPerson?'[视角] 第三人称':'[视角] 第一人称');}
   if(e.code==='F6'&&gameStarted){toggleGameMode();}
   if(e.code==='F3'&&gameStarted){debugOpen=!debugOpen;document.getElementById('debug-screen').style.display=debugOpen?'block':'none';}
+  // Drop item
+  if(e.code==='KeyQ'&&gameStarted&&!chatOpen&&!isInventoryOpen){
+    dropSelectedItem();
+  }
   // Creative flight - double-tap Space to toggle
   if(e.code==='Space'&&gameMode==='creative'&&!isInventoryOpen){
     const now=performance.now();
@@ -1982,6 +2053,9 @@ function setupMobileControls(){
   btnCancel('mbtn-sneak',()=>{keys['ShiftLeft']=false;});
 
   btn('mbtn-fly',()=>{toggleGameMode();});
+
+  // Drop button
+  btn('mbtn-drop',()=>{dropSelectedItem();});
 
   // Break button - hold to break
   btn('mbtn-break',()=>{
@@ -2224,6 +2298,7 @@ function gameLoop(){
   }
 
   updateUI();
+  updateDroppedItems(dt);
   renderer.render(scene,camera);
 
   // Death check
