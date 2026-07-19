@@ -1405,6 +1405,12 @@ function createInvSlot(item,from,index){
       }
       updateInvScreen();
     }else if(item){
+      // On mobile: tap hotbar slot to select it
+      if(from==='hotbar'&&(window.matchMedia('(pointer:coarse)').matches||window.innerWidth<768)){
+        selectedSlot=index;
+        updateUI();
+        return;
+      }
       draggingItem={id:item.id};draggingCount=item.count;
       const targetArr=from==='inv'?inventory:from==='hotbar'?hotbar:null;
       if(targetArr)targetArr[index+(from==='inv'?9:0)]=null;
